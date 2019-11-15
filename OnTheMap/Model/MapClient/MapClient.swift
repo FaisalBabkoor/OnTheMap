@@ -11,6 +11,9 @@ class MapClient {
     struct AuthUser {
         static var key = ""
         static var objectId = ""
+        static var firstName = ""
+        static var lastName = ""
+        static var nickname = ""
     }
     
     enum HTTPMethod: String {
@@ -75,7 +78,7 @@ class MapClient {
         let session = URLSession.shared
         let task = session.dataTask(with: Endpoints.limitAndSkipAndOrder(limit, skip).url) { data, response, error in
             var usersLocation: [RequestStudentLocation] = []
-            if error != nil { // Handle error...
+            if error != nil {
                 completion(nil, error!)
                 return
             }
@@ -91,7 +94,6 @@ class MapClient {
                 } catch {
                     completion(nil, error)
                 }
-                //                  print(String(data: data, encoding: .utf8)!)
                 
             }else {
                 completion(nil,error!)
@@ -108,11 +110,10 @@ class MapClient {
         var request = URLRequest(url: Endpoints.createNewStudentLocation.url)
         request.httpMethod = HTTPMethod.post.rawValue
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = "{\"uniqueKey\": \"\(location.uniqueKey ?? "0")\", \"firstName\": \"\(location.firstName ?? "")\", \"lastName\": \"\(location.lastName ?? "")\",\"mapString\": \"\(location.mapString ?? "")\", \"mediaURL\": \"\(location.mediaURL ?? "")\",\"latitude\": \(location.latitude ?? 0.0), \"longitude\": \(location.longitude ?? 0.0)}".data(using: .utf8)
-        print("{\"uniqueKey\": \"\(AuthUser.key)\", \"firstName\": \"\(location.firstName ?? "")\", \"lastName\": \"\(location.lastName ?? "")\",\"mapString\": \"\(location.mapString ?? "")\", \"mediaURL\": \"\(location.mediaURL ?? "")\",\"latitude\": \(location.latitude ?? 0.0), \"longitude\": \(location.longitude ?? 0.0)}")
+        request.httpBody = "{\"uniqueKey\": \"\(location.uniqueKey ?? "0")\", \"firstName\": \"\(AuthUser.firstName)\", \"lastName\": \"\(AuthUser.lastName)\",\"mapString\": \"\(location.mapString ?? "")\", \"mediaURL\": \"\(location.mediaURL ?? "")\",\"latitude\": \(location.latitude ?? 0.0), \"longitude\": \(location.longitude ?? 0.0)}".data(using: .utf8)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
                 errorMessage = error?.localizedDescription
                 completion(errorMessage)
                 return
@@ -131,7 +132,6 @@ class MapClient {
                 errorMessage = error?.localizedDescription
             }
             
-            print(String(data: data, encoding: .utf8)!)
             
             DispatchQueue.main.async {
                 completion(errorMessage)
@@ -150,10 +150,9 @@ class MapClient {
         request.httpBody = "{\"uniqueKey\": \"\(location.uniqueKey ?? "")\", \"firstName\": \"\(location.firstName ?? "")\", \"lastName\": \"\(location.lastName ?? "")\",\"mapString\": \"\(location.mapString ?? "")\", \"mediaURL\": \"\(location.mediaURL ?? "")\",\"latitude\": \(location.latitude ?? 0.0), \"longitude\": \(location.longitude ?? 0.0)}".data(using: .utf8)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
                 return
             }
-            print(String(data: data!, encoding: .utf8)!)
         }
         task.resume()
         
@@ -165,7 +164,6 @@ class MapClient {
         request.httpMethod = HTTPMethod.post.rawValue
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        //          encoding a JSON body from a string, can also use a Codable struct
         request.httpBody = "{\"udacity\": {\"username\": \"\(username)\", \"password\": \"\(password)\"}}".data(using: .utf8)
         
         let session = URLSession.shared
@@ -173,19 +171,16 @@ class MapClient {
             if error != nil {
                 
                 errorMessage = error!.localizedDescription
-                completion(errorMessage)// Handle error…
+                completion(errorMessage)
                 return
             }
             guard let response = response as? HTTPURLResponse else { return }
             if response.statusCode >= 200 && response.statusCode < 300 {
-                //           let range = Range(5..<data!.count)
-                let newData = data?.subdata(in: 5..<data!.count) /* subset response data! */
-                //                print(String(data: newData!, encoding: .utf8)!)
+                let newData = data?.subdata(in: 5..<data!.count)
                 guard let newdata = newData else { return }
                 let decoder = JSONDecoder()
                 do {
                     let session = try decoder.decode(POSTSessionResponse.self, from: newdata)
-                    print(session)
                     AuthUser.key = session.account.key
                 } catch {
                     errorMessage = "try agian"
@@ -201,7 +196,6 @@ class MapClient {
         task.resume()
         
     }
-    //Done 👍🏻
     
     class func logout(completion: @escaping (Bool, Error?) -> ()) {
         
@@ -217,14 +211,13 @@ class MapClient {
         }
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error…
+            if error != nil {
                 completion(false, error)
                 return
             }
             
-            //         let range = Range(5..<data!.count)
-            let newData = data?.subdata(in: 5..<data!.count) /* subset response data! */
-            print(String(data: newData!, encoding: .utf8)!)
+            
+            let newData = data?.subdata(in: 5..<data!.count)
             guard let newdata = newData else { return }
             do {
                 var logoutSession =  try JSONDecoder().decode(DeleteSession.self, from: newdata)
@@ -243,14 +236,11 @@ class MapClient {
     }
     
     
-    
     class func getPublicUserData(userId: Int, completion: @escaping (UserData?, Error?) -> ()) {
-        
         let request = URLRequest(url: Endpoints.getPublicUserData(userId).url)
-        //         let request = URLRequest(url: URL(string: "https://onthemap-api.udacity.com/v1/users/3903878747")!)
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
-            if error != nil { // Handle error...
+            if error != nil {
                 completion(nil, error)
                 return
             }
@@ -269,12 +259,10 @@ class MapClient {
             }else {
                 completion(nil, error)
             }
-            //         let range = Range(5..<data!.count)
-            /* subset response data! */
-            print(String(data: newData, encoding: .utf8)!)
+            
             
             DispatchQueue.main.async {
-                completion(userdata, nil)
+                completion(userdata,nil)
             }
         }
         task.resume()

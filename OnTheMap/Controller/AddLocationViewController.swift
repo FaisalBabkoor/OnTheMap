@@ -18,6 +18,17 @@ class AddLocationViewController: UIViewController {
         super.viewDidLoad()
         locationNameTextField.delegate = self
         mediaLinkTextField.delegate = self
+        MapClient.getPublicUserData(userId: Int(MapClient.AuthUser.key) ?? 0) { (userData, error) in
+            guard error == nil else {
+                ShowAlert.showAlert(title: "Error", message: error!.localizedDescription, vc: self)
+                return
+            }
+            guard let user = userData else { return }
+            MapClient.AuthUser.firstName = user.firstName ?? ""
+            MapClient.AuthUser.firstName = user.lastName ?? ""
+        }
+        
+        
         
         // Do any additional setup after loading the view.
     }
@@ -51,6 +62,11 @@ class AddLocationViewController: UIViewController {
         
         let sudentLocation = RequestStudentLocation(mapString: location, mediaURL: mediaLink)
         CLGeocoder().geocodeAddressString(sudentLocation.mapString!) { (placeMarks, err) in
+            guard err == nil else {
+                ShowAlert.showAlert(title: "Error", message: err!.localizedDescription, vc: self)
+                return
+                
+            }
             self.activityIndicator.stopAnimating()
             guard let firstLocation = placeMarks?.first?.location else { return }
             var location = sudentLocation
@@ -101,12 +117,6 @@ class AddLocationViewController: UIViewController {
         return keyboardSize.cgRectValue.height
     }
     
-}
-
-extension AddLocationViewController: UITextFieldDelegate {
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
-        return true
-    }
     
 }
+
