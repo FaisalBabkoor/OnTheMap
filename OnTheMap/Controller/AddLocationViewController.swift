@@ -64,6 +64,7 @@ class AddLocationViewController: UIViewController {
         CLGeocoder().geocodeAddressString(sudentLocation.mapString!) { (placeMarks, err) in
             guard err == nil else {
                 ShowAlert.showAlert(title: "Error", message: err!.localizedDescription, vc: self)
+                self.activityIndicator.stopAnimating()
                 return
                 
             }
